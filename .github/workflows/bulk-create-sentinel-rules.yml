@@ -220,7 +220,13 @@ jobs:
             $ruleId = ''
             $displayName = [string]$contentTemplate.properties.displayName
             try {
-              $mainTemplate = $contentTemplate.properties.mainTemplate
+              $contentTemplateName = [string]$contentTemplate.name
+              if (-not $contentTemplateName) { throw 'Content template resource name is empty.' }
+              $detailUri = "$baseUri/contentTemplates/$([uri]::EscapeDataString($contentTemplateName))?api-version=$env:API_VERSION"
+              $detailOutput = az rest --method get --url $detailUri --output json
+              if ($LASTEXITCODE -ne 0) { throw "GET failed: $detailUri" }
+              $contentTemplateDetail = $detailOutput | ConvertFrom-Json -Depth 100
+              $mainTemplate = $contentTemplateDetail.properties.mainTemplate
               if ($mainTemplate -is [string]) { $mainTemplate = $mainTemplate | ConvertFrom-Json -Depth 100 }
               $alertResources = @(Get-AlertRuleResources @($mainTemplate.resources))
               if ($alertResources.Count -eq 0) { throw 'No alertRules resource was found in properties.mainTemplate.' }
