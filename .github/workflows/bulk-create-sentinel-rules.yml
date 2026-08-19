@@ -68,9 +68,16 @@ jobs:
           function Get-AlertRuleResources([object[]] $Resources) {
             $found = [Collections.Generic.List[object]]::new()
             foreach ($resource in @($Resources)) {
+              if ($null -eq $resource) { continue }
               if ([string]$resource.type -match '(?i)(^|/)alertRules$') { $found.Add($resource) }
-              foreach ($nested in @(Get-AlertRuleResources @($resource.resources))) { $found.Add($nested) }
-              foreach ($nested in @(Get-AlertRuleResources @($resource.properties.template.resources))) { $found.Add($nested) }
+              $nestedResources = @($resource.resources | Where-Object { $null -ne $_ })
+              if ($nestedResources.Count -gt 0) {
+                foreach ($nested in @(Get-AlertRuleResources $nestedResources)) { $found.Add($nested) }
+              }
+              $templateResources = @($resource.properties.template.resources | Where-Object { $null -ne $_ })
+              if ($templateResources.Count -gt 0) {
+                foreach ($nested in @(Get-AlertRuleResources $templateResources)) { $found.Add($nested) }
+              }
             }
             return $found.ToArray()
           }
