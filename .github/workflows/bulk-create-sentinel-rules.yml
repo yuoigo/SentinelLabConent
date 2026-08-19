@@ -65,6 +65,239 @@ jobs:
             return ([string]$Value).Replace('|', '\|').Replace("`r", ' ').Replace("`n", ' ')
           }
 
+          function Get-AlertRuleResources([object[]] $Resources) {
+            $found = [Collections.Generic.List[object]]::new()
+            foreach ($resource in @($Resources)) {
+              if ([string]$resource.type -match '(?i)(^|/)alertRules "https://management.azure.com/subscriptions/$env:AZURE_SUBSCRIPTION_ID/resourceGroups/$env:RESOURCE_GROUP/providers/Microsoft.OperationalInsights/workspaces/$env:WORKSPACE/providers/Microsoft.SecurityInsights"
+          $templates = @(Get-PagedItems "$baseUri/alertRuleTemplates?api-version=$env:API_VERSION")
+          $contentTemplates = @(Get-PagedItems "$baseUri/contentTemplates?api-version=$env:API_VERSION")
+          $rules = @(Get-PagedItems "$baseUri/alertRules?api-version=$env:API_VERSION")
+
+          $installedTemplateIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+          foreach ($contentTemplate in $contentTemplates) {
+            if ([string]$contentTemplate.properties.contentKind -in @('AnalyticsRule', 'AnalyticsRuleTemplate')) {
+              [void]$installedTemplateIds.Add([string]$contentTemplate.properties.contentId)
+            }
+          }
+
+          $representedTemplates = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+          $existingRuleNames = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+          foreach ($rule in $rules) {
+            if ($rule.name) {
+              [void]$existingRuleNames.Add([string]$rule.name)
+            }
+            $templateName = [string]$rule.properties.alertRuleTemplateName
+            if ($templateName) {
+              [void]$representedTemplates.Add($templateName)
+            }
+          }
+
+          $copyProperties = @(
+            'alertDetailsOverride', 'customDetails', 'description', 'displayName',
+            'entityMappings', 'eventGroupingSettings', 'incidentConfiguration',
+            'query', 'queryFrequency', 'queryPeriod', 'severity',
+            'suppressionDuration', 'suppressionEnabled', 'tactics', 'techniques',
+            'triggerOperator', 'triggerThreshold'
+          )
+          $results = [Collections.Generic.List[object]]::new()
+          $notInstalled = 0
+          $unsupported = 0
+          $alreadyExists = 0
+          $planned = 0
+          $created = 0
+          $failed = 0
+          $directUnsupported = 0
+          $directInvalid = 0
+
+          foreach ($template in $templates) {
+            if (-not $installedTemplateIds.Contains([string]$template.name)) {
+              $notInstalled++
+              continue
+            }
+            if ([string]$template.kind -ne 'Scheduled') {
+              $unsupported++
+              continue
+            }
+            $templateName = [string]$template.name
+            if ($representedTemplates.Contains($templateName)) {
+              $alreadyExists++
+              continue
+            }
+
+            $ruleId = ''
+            try {
+              if (-not $templateName) {
+                throw 'Template name is empty.'
+              }
+              $displayName = [string]$template.properties.displayName
+              if (-not $displayName) {
+                throw 'Template displayName is empty.'
+              }
+              [guid]$parsedGuid = [guid]::Empty
+              if ([guid]::TryParse($templateName, [ref]$parsedGuid)) {
+                $ruleId = $templateName
+              } else {
+                $ruleId = [guid]::NewGuid().ToString()
+              }
+              if ($existingRuleNames.Contains($ruleId)) {
+                throw "Rule ID '$ruleId' already exists without a template reference."
+              }
+
+              $properties = [ordered]@{}
+              foreach ($propertyName in $copyProperties) {
+                $property = $template.properties.PSObject.Properties[$propertyName]
+                if ($null -ne $property -and $null -ne $property.Value) {
+                  $properties[$propertyName] = $property.Value
+                }
+              }
+              if (-not $properties.Contains('suppressionDuration')) {
+                $properties.suppressionDuration = 'PT5H'
+              }
+              if (-not $properties.Contains('suppressionEnabled')) {
+                $properties.suppressionEnabled = $false
+              }
+              $properties.enabled = $true
+              $properties.alertRuleTemplateName = $templateName
+              $templateVersion = [string]$template.properties.version
+              if ($templateVersion) {
+                $properties.templateVersion = $templateVersion
+              }
+              $payload = [ordered]@{ kind = 'Scheduled'; properties = $properties }
+
+              if ($env:MODE -eq 'preview') {
+                $planned++
+                $result = 'Preview'
+              } else {
+                $ruleUri = "$baseUri/alertRules/$([uri]::EscapeDataString($ruleId))?api-version=$env:API_VERSION"
+                $bodyPath = Join-Path $env:RUNNER_TEMP "sentinel-rule-$([guid]::NewGuid()).json"
+                try {
+                  $payload | ConvertTo-Json -Depth 100 | Set-Content $bodyPath -Encoding utf8NoBOM
+                  $output = az rest --method put --url $ruleUri --body "@$bodyPath" --output none 2>&1
+                  if ($LASTEXITCODE -ne 0) {
+                    throw "PUT failed: $($output -join ' ')"
+                  }
+                } finally {
+                  Remove-Item $bodyPath -Force -ErrorAction SilentlyContinue
+                }
+                $created++
+                $result = 'Created'
+              }
+              [void]$existingRuleNames.Add($ruleId)
+              [void]$representedTemplates.Add($templateName)
+              $results.Add([pscustomobject]@{ Result = $result; Source = 'Gallery'; Template = $templateName; Rule = $ruleId; DisplayName = $displayName; Error = '' })
+              Write-Host "$($result.ToUpper()): $displayName"
+            } catch {
+              $failed++
+              $results.Add([pscustomobject]@{ Result = 'Failed'; Source = 'Gallery'; Template = $templateName; Rule = $ruleId; DisplayName = [string]$template.properties.displayName; Error = $_.Exception.Message })
+              Write-Warning "FAILED: $templateName - $($_.Exception.Message)"
+            }
+          }
+
+          foreach ($contentTemplate in $contentTemplates) {
+            if ([string]$contentTemplate.properties.contentKind -notin @('AnalyticsRule', 'AnalyticsRuleTemplate')) { continue }
+            $contentId = [string]$contentTemplate.properties.contentId
+            if (-not $contentId -or $representedTemplates.Contains($contentId)) { continue }
+            if ($existingRuleNames.Contains($contentId)) {
+              $alreadyExists++
+              [void]$representedTemplates.Add($contentId)
+              continue
+            }
+
+            $ruleId = ''
+            $displayName = [string]$contentTemplate.properties.displayName
+            try {
+              $mainTemplate = $contentTemplate.properties.mainTemplate
+              if ($mainTemplate -is [string]) { $mainTemplate = $mainTemplate | ConvertFrom-Json -Depth 100 }
+              $alertResources = @(Get-AlertRuleResources @($mainTemplate.resources))
+              if ($alertResources.Count -eq 0) { throw 'No alertRules resource was found in properties.mainTemplate.' }
+              $resource = @($alertResources | Where-Object { [string]$_.kind -eq 'Scheduled' }) | Select-Object -First 1
+              if ($null -eq $resource) { $directUnsupported++; continue }
+
+              [guid]$parsedGuid = [guid]::Empty
+              if ([guid]::TryParse($contentId, [ref]$parsedGuid)) {
+                $ruleId = $contentId
+              } else {
+                $guidMatch = [regex]::Match([string]$resource.name, '(?i)[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}')
+                if (-not $guidMatch.Success) { throw "No rule GUID could be resolved for content '$contentId'." }
+                $ruleId = $guidMatch.Value
+              }
+              if ($existingRuleNames.Contains($ruleId)) {
+                $alreadyExists++
+                [void]$representedTemplates.Add($contentId)
+                continue
+              }
+
+              $properties = $resource.properties | ConvertTo-Json -Depth 100 | ConvertFrom-Json -Depth 100 -AsHashtable
+              $displayName = [string]$properties['displayName']
+              foreach ($requiredProperty in @('displayName', 'query', 'queryFrequency', 'queryPeriod', 'severity', 'triggerOperator', 'triggerThreshold')) {
+                if ($null -eq $properties[$requiredProperty] -or [string]::IsNullOrWhiteSpace([string]$properties[$requiredProperty])) { throw "Required property '$requiredProperty' is missing." }
+              }
+              $propertiesJson = $properties | ConvertTo-Json -Depth 100
+              if ($propertiesJson -match '(?i)\[(parameters|variables|reference|resourceId|subscriptionResourceId)\(') { throw 'The rule contains unresolved ARM template expressions.' }
+              $properties['enabled'] = $true
+              if (-not $properties.ContainsKey('suppressionDuration')) { $properties['suppressionDuration'] = 'PT5H' }
+              if (-not $properties.ContainsKey('suppressionEnabled')) { $properties['suppressionEnabled'] = $false }
+              $payload = [ordered]@{ kind = 'Scheduled'; properties = $properties }
+
+              if ($env:MODE -eq 'preview') {
+                $planned++
+                $result = 'Preview'
+              } else {
+                $ruleUri = "$baseUri/alertRules/$([uri]::EscapeDataString($ruleId))?api-version=$env:API_VERSION"
+                $bodyPath = Join-Path $env:RUNNER_TEMP "sentinel-rule-$([guid]::NewGuid()).json"
+                try {
+                  $payload | ConvertTo-Json -Depth 100 | Set-Content $bodyPath -Encoding utf8NoBOM
+                  $output = az rest --method put --url $ruleUri --body "@$bodyPath" --output none 2>&1
+                  if ($LASTEXITCODE -ne 0) { throw "PUT failed: $($output -join ' ')" }
+                } finally { Remove-Item $bodyPath -Force -ErrorAction SilentlyContinue }
+                $created++
+                $result = 'Created'
+              }
+              [void]$existingRuleNames.Add($ruleId)
+              [void]$representedTemplates.Add($contentId)
+              $results.Add([pscustomobject]@{ Result = $result; Source = 'MainTemplate'; Template = $contentId; Rule = $ruleId; DisplayName = $displayName; Error = '' })
+              Write-Host "$($result.ToUpper()): $displayName (mainTemplate)"
+            } catch {
+              $directInvalid++
+              $failed++
+              $results.Add([pscustomobject]@{ Result = 'Failed'; Source = 'MainTemplate'; Template = $contentId; Rule = $ruleId; DisplayName = $displayName; Error = $_.Exception.Message })
+              Write-Warning "FAILED mainTemplate: $contentId - $($_.Exception.Message)"
+            }
+          }
+
+          $summary = @(
+            '## Microsoft Sentinel template rule creation', '',
+            "Mode: **$env:MODE**", '',
+            '| Item | Count |', '| --- | ---: |',
+            "| Gallery templates returned | $($templates.Count) |",
+            "| Installed Content Hub analytics templates | $($installedTemplateIds.Count) |",
+            "| Existing rules returned | $($rules.Count) |",
+            "| Not installed skipped | $notInstalled |",
+            "| Unsupported kinds skipped | $unsupported |",
+            "| Already represented skipped | $alreadyExists |",
+            "| Unsupported mainTemplate kinds skipped | $directUnsupported |",
+            "| Invalid mainTemplates | $directInvalid |",
+            "| Previewed | $planned |",
+            "| Created | $created |",
+            "| Failed | $failed |", '',
+            '| Result | Source | Display name | Template | Rule ID | Error |',
+            '| --- | --- | --- | --- | --- | --- |'
+          )
+          foreach ($item in $results) {
+            $summary += '| {0} | {1} | {2} | {3} | {4} | {5} |' -f (Escape-Summary $item.Result), (Escape-Summary $item.Source), (Escape-Summary $item.DisplayName), (Escape-Summary $item.Template), (Escape-Summary $item.Rule), (Escape-Summary $item.Error)
+          }
+          $summary | Add-Content $env:GITHUB_STEP_SUMMARY
+
+          if ($env:MODE -eq 'apply' -and $failed -gt 0) {
+            throw "$failed rule creation(s) failed."
+          }
+) { $found.Add($resource) }
+              foreach ($nested in @(Get-AlertRuleResources @($resource.resources))) { $found.Add($nested) }
+              foreach ($nested in @(Get-AlertRuleResources @($resource.properties.template.resources))) { $found.Add($nested) }
+            }
+            return $found.ToArray()
+          }
+
           $baseUri = "https://management.azure.com/subscriptions/$env:AZURE_SUBSCRIPTION_ID/resourceGroups/$env:RESOURCE_GROUP/providers/Microsoft.OperationalInsights/workspaces/$env:WORKSPACE/providers/Microsoft.SecurityInsights"
           $templates = @(Get-PagedItems "$baseUri/alertRuleTemplates?api-version=$env:API_VERSION")
           $contentTemplates = @(Get-PagedItems "$baseUri/contentTemplates?api-version=$env:API_VERSION")
