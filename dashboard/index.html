@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Microsoft Sentinel analytics rule status dashboard">
+  <title>Sentinel Status</title>
+  <style>
+    :root { --ink:#15232b; --muted:#60717a; --line:#d9e2e6; --paper:#f4f7f7; --white:#fff; --teal:#007f78; --green:#16825d; --red:#c83d4d; --orange:#d97706; --blue:#2877b5; --gray:#8a99a1; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:var(--paper); font-family:"Segoe UI Variable", "Yu Gothic UI", sans-serif; letter-spacing:0; }
+    button,input,select { font:inherit; }
+    header { background:var(--ink); color:#fff; border-bottom:4px solid var(--teal); }
+    .topbar { max-width:1240px; margin:auto; padding:22px 28px 18px; display:flex; align-items:center; justify-content:space-between; gap:24px; }
+    .brand { display:flex; align-items:center; gap:14px; }
+    .mark { width:38px; height:38px; display:grid; place-items:center; border:1px solid #5a747f; background:#20343e; font:700 19px/1 Georgia,serif; color:#5ee0ce; }
+    h1 { margin:0; font:600 22px/1.2 Georgia,"Yu Mincho",serif; letter-spacing:0; }
+    .subtitle { margin:4px 0 0; color:#b8c7ce; font-size:12px; }
+    .state { display:flex; align-items:center; gap:9px; font-size:13px; }
+    .dot { width:9px; height:9px; border-radius:50%; background:#57d6a1; box-shadow:0 0 0 4px #57d6a122; }
+    main { max-width:1240px; margin:auto; padding:26px 28px 44px; }
+    .overview { display:grid; grid-template-columns:1.1fr repeat(3,1fr); border:1px solid var(--line); background:var(--white); }
+    .metric { min-height:114px; padding:20px 22px; border-right:1px solid var(--line); }
+    .metric:last-child { border-right:0; }
+    .metric-label { color:var(--muted); font-size:12px; font-weight:600; text-transform:uppercase; }
+    .metric-value { margin-top:8px; font:600 34px/1 Georgia,"Yu Mincho",serif; }
+    .metric-value.small { font-size:20px; line-height:1.45; }
+    .metric-note { margin-top:5px; color:var(--muted); font-size:12px; }
+    .layout { display:grid; grid-template-columns:340px 1fr; gap:22px; margin-top:22px; align-items:start; }
+    .panel { background:var(--white); border:1px solid var(--line); }
+    .panel-head { padding:15px 18px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    h2 { margin:0; font-size:14px; font-weight:650; }
+    .severity { padding:17px 18px 20px; }
+    .severity-row { display:grid; grid-template-columns:64px 1fr 34px; gap:10px; align-items:center; margin:13px 0; font-size:12px; }
+    .track { height:8px; background:#e9eef0; overflow:hidden; }
+    .bar { height:100%; width:0; transition:width .6s ease; }
+    .high { background:var(--red); }.medium { background:var(--orange); }.low { background:var(--blue); }.informational { background:var(--teal); }.unknown { background:var(--gray); }
+    .meta { border-top:1px solid var(--line); padding:16px 18px; }
+    .meta-row { display:flex; justify-content:space-between; gap:18px; margin:9px 0; font-size:12px; }
+    .meta-row span:first-child { color:var(--muted); }
+    .toolbar { display:grid; grid-template-columns:minmax(180px,1fr) 160px; gap:10px; padding:12px 14px; border-bottom:1px solid var(--line); }
+    input,select { width:100%; height:38px; border:1px solid #b9c7cc; background:#fff; color:var(--ink); padding:0 11px; border-radius:3px; }
+    input:focus,select:focus { outline:2px solid #58bdb5; outline-offset:1px; }
+    .table-wrap { overflow:auto; max-height:620px; }
+    table { width:100%; border-collapse:collapse; min-width:720px; }
+    th { position:sticky; top:0; z-index:1; background:#edf2f3; color:#53666f; padding:10px 13px; text-align:left; font-size:11px; text-transform:uppercase; border-bottom:1px solid var(--line); }
+    td { padding:12px 13px; border-bottom:1px solid #e8edef; font-size:12px; vertical-align:top; }
+    tbody tr:hover { background:#f5f9f9; }
+    .rule-name { font-weight:650; max-width:330px; }
+    .badge { display:inline-block; min-width:72px; padding:3px 7px; color:#fff; text-align:center; font-size:10px; font-weight:700; border-radius:2px; }
+    .tactic { color:var(--muted); }
+    .empty,.error { padding:42px 20px; text-align:center; color:var(--muted); }
+    .error { color:var(--red); }
+    footer { max-width:1240px; margin:auto; padding:0 28px 24px; color:var(--muted); font-size:11px; }
+    @media (max-width:850px) { .overview { grid-template-columns:1fr 1fr; }.metric:nth-child(2){border-right:0}.metric:nth-child(-n+2){border-bottom:1px solid var(--line)}.layout{grid-template-columns:1fr}.topbar{align-items:flex-start}.state{margin-top:5px}.table-wrap{max-height:none} }
+    @media (max-width:520px) { .topbar,main{padding-left:16px;padding-right:16px}.overview{grid-template-columns:1fr}.metric{border-right:0;border-bottom:1px solid var(--line)!important;min-height:92px}.metric:last-child{border-bottom:0!important}.layout{gap:16px}.toolbar{grid-template-columns:1fr}.state span:last-child{display:none} }
+  </style>
+</head>
+<body>
+  <header><div class="topbar"><div class="brand"><div class="mark">S</div><div><h1>Sentinel Status</h1><p class="subtitle">Analytics rules / sentinellab2026</p></div></div><div class="state"><span class="dot"></span><span id="stateText">データを確認中</span></div></div></header>
+  <main>
+    <section class="overview" aria-label="概要">
+      <div class="metric"><div class="metric-label">Enabled rules</div><div class="metric-value" id="ruleCount">--</div><div class="metric-note">現在有効な分析ルール</div></div>
+      <div class="metric"><div class="metric-label">High severity</div><div class="metric-value" id="highCount">--</div><div class="metric-note">高重要度ルール</div></div>
+      <div class="metric"><div class="metric-label">Rule types</div><div class="metric-value" id="kindCount">--</div><div class="metric-note">検出方式の種類</div></div>
+      <div class="metric"><div class="metric-label">Last sync</div><div class="metric-value small" id="lastSync">--</div><div class="metric-note" id="syncAge">GitHubへの最終同期</div></div>
+    </section>
+    <div class="layout">
+      <aside class="panel">
+        <div class="panel-head"><h2>Severity distribution</h2><span id="severityTotal">0 rules</span></div>
+        <div class="severity" id="severityChart"></div>
+        <div class="meta"><div class="meta-row"><span>Workspace</span><strong id="workspace">--</strong></div><div class="meta-row"><span>Resource group</span><strong id="resourceGroup">--</strong></div><div class="meta-row"><span>Subscription</span><strong id="subscription">--</strong></div></div>
+      </aside>
+      <section class="panel">
+        <div class="panel-head"><h2>Enabled analytics rules</h2><span id="visibleCount">0件</span></div>
+        <div class="toolbar"><input id="search" type="search" placeholder="ルール名・戦術・IDを検索" aria-label="ルールを検索"><select id="severityFilter" aria-label="Severityで絞り込み"><option value="">すべてのSeverity</option><option>High</option><option>Medium</option><option>Low</option><option>Informational</option></select></div>
+        <div class="table-wrap"><table><thead><tr><th>Rule</th><th>Severity</th><th>Kind</th><th>Tactics</th><th>Frequency</th><th>Updated</th></tr></thead><tbody id="rulesBody"><tr><td colspan="6" class="empty">読み込み中...</td></tr></tbody></table></div>
+      </section>
+    </div>
+  </main>
+  <footer>Source: Microsoft Sentinel Management API. 表示内容は最新の正常なエクスポート時点です。</footer>
+  <script>
+    const severityOrder=['High','Medium','Low','Informational','Unknown']; let allRules=[];
+    const el=id=>document.getElementById(id); const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+    const formatDate=value=>value?new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(value)):'--';
+    function renderRules(){const term=el('search').value.trim().toLowerCase(),severity=el('severityFilter').value; const rows=allRules.filter(rule=>(!severity||rule.severity===severity)&&(!term||[rule.displayName,rule.name,(rule.tactics||[]).join(' ')].join(' ').toLowerCase().includes(term))); el('visibleCount').textContent=rows.length+'件'; el('rulesBody').innerHTML=rows.length?rows.map(rule=>'<tr><td><div class="rule-name">'+esc(rule.displayName)+'</div><div class="tactic">'+esc(rule.name)+'</div></td><td><span class="badge '+esc((rule.severity||'Unknown').toLowerCase())+'">'+esc(rule.severity||'Unknown')+'</span></td><td>'+esc(rule.kind)+'</td><td class="tactic">'+esc((rule.tactics||[]).join(', ')||'--')+'</td><td>'+esc(rule.queryFrequency||'--')+'</td><td>'+esc(formatDate(rule.lastModifiedUtc))+'</td></tr>').join(''):'<tr><td colspan="6" class="empty">条件に一致するルールはありません</td></tr>';}
+    function render(data){allRules=data.rules||[]; const counts=data.severityCounts||{},total=allRules.length,max=Math.max(1,...severityOrder.map(key=>counts[key]||0)); el('ruleCount').textContent=total; el('highCount').textContent=counts.High||0; el('kindCount').textContent=Object.keys(data.kindCounts||{}).length; el('lastSync').textContent=formatDate(data.exportedAtUtc); const age=Math.max(0,Math.floor((Date.now()-new Date(data.exportedAtUtc))/60000)); el('syncAge').textContent=age<60?age+'分前に同期':Math.floor(age/60)+'時間前に同期'; el('stateText').textContent='Latest export loaded'; el('workspace').textContent=data.workspace||'--'; el('resourceGroup').textContent=data.resourceGroup||'--'; el('subscription').textContent=(data.subscriptionId||'').slice(0,8)+'...'; el('severityTotal').textContent=total+' rules'; el('severityChart').innerHTML=severityOrder.map(key=>'<div class="severity-row"><span>'+key+'</span><div class="track"><div class="bar '+key.toLowerCase()+'" style="width:'+((counts[key]||0)/max*100)+'%"></div></div><strong>'+(counts[key]||0)+'</strong></div>').join(''); renderRules();}
+    el('search').addEventListener('input',renderRules); el('severityFilter').addEventListener('change',renderRules);
+    fetch('./dashboard.json',{cache:'no-store'}).then(response=>{if(!response.ok)throw new Error('HTTP '+response.status);return response.json();}).then(render).catch(error=>{el('stateText').textContent='Data unavailable';el('rulesBody').innerHTML='<tr><td colspan="6" class="error">データを読み込めませんでした: '+esc(error.message)+'</td></tr>';document.querySelector('.dot').style.background='#c83d4d';});
+  </script>
+</body>
+</html>
