@@ -1,0 +1,93 @@
+{
+  "id": "/subscriptions/9feae9d3-e5be-4b77-b390-18cb15a29c0d/resourceGroups/seclabenv/providers/Microsoft.OperationalInsights/workspaces/sentinellab2026/providers/Microsoft.SecurityInsights/alertRules/738702fd-0a66-42c7-8586-e30f0583f8fe",
+  "name": "738702fd-0a66-42c7-8586-e30f0583f8fe",
+  "type": "Microsoft.SecurityInsights/alertRules",
+  "kind": "Scheduled",
+  "properties": {
+    "alertRuleTemplateName": "738702fd-0a66-42c7-8586-e30f0583f8fe",
+    "description": "Identifies SolarWinds TEARDROP memory-only dropper IOCs in Window's defender Exploit Guard activity\nReferences:\n- https://www.fireeye.com/blog/threat-research/2020/12/evasive-attacker-leverages-solarwinds-supply-chain-compromises-with-sunburst-backdoor.html\n- https://gist.github.com/olafhartong/71ffdd4cab4b6acd5cbcd1a0691ff82f",
+    "displayName": "TEARDROP memory-only dropper",
+    "enabled": true,
+    "entityMappings": [
+      {
+        "entityType": "Host",
+        "fieldMappings": [
+          {
+            "columnName": "DeviceName",
+            "identifier": "FullName"
+          },
+          {
+            "columnName": "HostName",
+            "identifier": "HostName"
+          },
+          {
+            "columnName": "HostNameDomain",
+            "identifier": "DnsDomain"
+          }
+        ]
+      },
+      {
+        "entityType": "Account",
+        "fieldMappings": [
+          {
+            "columnName": "InitiatingProcessAccountUpn",
+            "identifier": "FullName"
+          },
+          {
+            "columnName": "InitiatingProcessAccountName",
+            "identifier": "Name"
+          },
+          {
+            "columnName": "InitiatingProcessAccountDomain",
+            "identifier": "UPNSuffix"
+          }
+        ]
+      },
+      {
+        "entityType": "FileHash",
+        "fieldMappings": [
+          {
+            "columnName": "HashAlgorithm",
+            "identifier": "Algorithm"
+          },
+          {
+            "columnName": "InitiatingProcessSHA1",
+            "identifier": "Value"
+          }
+        ]
+      }
+    ],
+    "incidentConfiguration": {
+      "createIncident": true,
+      "groupingConfiguration": {
+        "enabled": false,
+        "groupByAlertDetails": null,
+        "groupByCustomDetails": null,
+        "groupByEntities": [],
+        "lookbackDuration": "PT5M",
+        "matchingMethod": "AllEntities",
+        "reopenClosedIncident": false
+      }
+    },
+    "lastModifiedUtc": "2026-08-19T02:03:45.4928649Z",
+    "query": "DeviceEvents\n| where ActionType has \"ExploitGuardNonMicrosoftSignedBlocked\"\n| where InitiatingProcessFileName has \"svchost.exe\" and FileName has \"NetSetupSvc.dll\"\n| extend HashAlgorithm = \"SHA1\"\n| extend HostName = tostring(split(DeviceName, \".\")[0]), DomainIndex = toint(indexof(DeviceName, '.'))\n| extend HostNameDomain = iff(DomainIndex != -1, substring(DeviceName, DomainIndex + 1), DeviceName)",
+    "queryFrequency": "P1D",
+    "queryPeriod": "P1D",
+    "severity": "High",
+    "suppressionDuration": "PT5H",
+    "suppressionEnabled": false,
+    "tactics": [
+      "Execution",
+      "Persistence",
+      "DefenseEvasion"
+    ],
+    "techniques": [
+      "T1543",
+      "T1059",
+      "T1027"
+    ],
+    "templateVersion": "1.0.6",
+    "triggerOperator": "GreaterThan",
+    "triggerThreshold": 0
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "id": "/subscriptions/9feae9d3-e5be-4b77-b390-18cb15a29c0d/resourceGroups/seclabenv/providers/Microsoft.OperationalInsights/workspaces/sentinellab2026/providers/Microsoft.SecurityInsights/alertRules/3bd33158-3f0b-47e3-a50f-7c20a1b88038",
+  "name": "3bd33158-3f0b-47e3-a50f-7c20a1b88038",
+  "type": "Microsoft.SecurityInsights/alertRules",
+  "kind": "Scheduled",
+  "properties": {
+    "alertRuleTemplateName": "3bd33158-3f0b-47e3-a50f-7c20a1b88038",
+    "description": "This query looks for Microsoft Defender AV detections related to the SpringShell vulnerability. In Microsoft Sentinel, the SecurityAlerts table includes only the Device Name of the affected device.\n  This query joins the DeviceInfo table to clearly connect other information such as device group, IP, logged-on users, etc. This would allow the Microsoft Sentinel analyst to have more context related to the alert, if available.\n  Reference: https://www.microsoft.com/security/blog/2022/04/04/springshell-rce-vulnerability-guidance-for-protecting-against-and-detecting-cve-2022-22965/",
+    "displayName": "AV detections related to SpringShell Vulnerability",
+    "enabled": true,
+    "entityMappings": [
+      {
+        "entityType": "Host",
+        "fieldMappings": [
+          {
+            "columnName": "CompromisedEntity",
+            "identifier": "FullName"
+          },
+          {
+            "columnName": "HostName",
+            "identifier": "HostName"
+          },
+          {
+            "columnName": "HostNameDomain",
+            "identifier": "DnsDomain"
+          }
+        ]
+      },
+      {
+        "entityType": "IP",
+        "fieldMappings": [
+          {
+            "columnName": "PublicIP",
+            "identifier": "Address"
+          }
+        ]
+      }
+    ],
+    "incidentConfiguration": {
+      "createIncident": true,
+      "groupingConfiguration": {
+        "enabled": false,
+        "groupByAlertDetails": null,
+        "groupByCustomDetails": null,
+        "groupByEntities": [],
+        "lookbackDuration": "PT5M",
+        "matchingMethod": "AllEntities",
+        "reopenClosedIncident": false
+      }
+    },
+    "lastModifiedUtc": "2026-08-19T02:03:49.7126789Z",
+    "query": "let SpringShell_threats = dynamic([\"Trojan:Python/SpringShellExpl\", \"Exploit:Python/SpringShell\", \"Backdoor:PHP/Remoteshell.V\", \"SpringShell\"]);\nDeviceInfo\n| extend DeviceName = tolower(DeviceName)\n| join kind=inner ( SecurityAlert\n| where ProviderName =~ \"MDATP\"\n| extend ThreatName = tostring(parse_json(ExtendedProperties).ThreatName)\n| extend ThreatFamilyName = tostring(parse_json(ExtendedProperties).ThreatFamilyName)\n| where ThreatName in~ (SpringShell_threats) or ThreatFamilyName in~ (SpringShell_threats)\n| extend CompromisedEntity = tolower(CompromisedEntity)\n) on $left.DeviceName == $right.CompromisedEntity\n| summarize by DisplayName, ThreatName, ThreatFamilyName, PublicIP, AlertSeverity, Description, tostring(LoggedOnUsers), DeviceId, TenantId , bin(TimeGenerated, 1d), CompromisedEntity, tostring(LoggedOnUsers), ProductName, Entities\n| extend HostName = tostring(split(CompromisedEntity, \".\")[0]), DomainIndex = toint(indexof(CompromisedEntity, '.'))\n| extend HostNameDomain = iff(DomainIndex != -1, substring(CompromisedEntity, DomainIndex + 1), CompromisedEntity)",
+    "queryFrequency": "P1D",
+    "queryPeriod": "P1D",
+    "severity": "High",
+    "suppressionDuration": "PT5H",
+    "suppressionEnabled": false,
+    "tactics": [
+      "InitialAccess"
+    ],
+    "techniques": [
+      "T1190"
+    ],
+    "templateVersion": "1.0.3",
+    "triggerOperator": "GreaterThan",
+    "triggerThreshold": 0
+  }
+}
