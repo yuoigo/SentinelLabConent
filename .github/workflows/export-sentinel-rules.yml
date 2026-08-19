@@ -7,11 +7,15 @@ on:
 
 permissions:
   contents: write
+  pages: write
   id-token: write
 
 jobs:
   export:
     runs-on: windows-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -61,13 +65,52 @@ jobs:
             $snapshot | ConvertTo-Json -Depth 100 | Set-Content (Join-Path $rulesDirectory "$($rule.name).json") -Encoding utf8
           }
 
+          $exportedAtUtc = (Get-Date).ToUniversalTime().ToString('o')
+          $severityCounts = [ordered]@{}
+          foreach ($severity in @('High', 'Medium', 'Low', 'Informational', 'Unknown')) {
+            $severityCounts[$severity] = @($enabledRules | Where-Object {
+              $value = [string]$_.properties.severity
+              if (-not $value) { $value = 'Unknown' }
+              $value -eq $severity
+            }).Count
+          }
+          $kindCounts = [ordered]@{}
+          foreach ($kindGroup in @($enabledRules | Group-Object kind)) {
+            $kindCounts[[string]$kindGroup.Name] = $kindGroup.Count
+          }
+          $dashboardRules = @(
+            $enabledRules | Sort-Object { $_.properties.displayName } | ForEach-Object {
+              [ordered]@{
+                name = [string]$_.name
+                displayName = [string]$_.properties.displayName
+                kind = [string]$_.kind
+                severity = if ($_.properties.severity) { [string]$_.properties.severity } else { 'Unknown' }
+                tactics = @($_.properties.tactics)
+                techniques = @($_.properties.techniques)
+                queryFrequency = [string]$_.properties.queryFrequency
+                lastModifiedUtc = [string]$_.properties.lastModifiedUtc
+              }
+            }
+          )
+
           [ordered]@{
-            exportedAtUtc = (Get-Date).ToUniversalTime().ToString('o')
+            exportedAtUtc = $exportedAtUtc
             subscriptionId = $subscriptionId
             resourceGroup = $resourceGroup
             workspace = $workspace
             enabledAnalyticsRuleCount = $enabledRules.Count
           } | ConvertTo-Json | Set-Content (Join-Path $temporaryExport 'manifest.json') -Encoding utf8
+
+          [ordered]@{
+            exportedAtUtc = $exportedAtUtc
+            subscriptionId = $subscriptionId
+            resourceGroup = $resourceGroup
+            workspace = $workspace
+            severityCounts = $severityCounts
+            kindCounts = $kindCounts
+            rules = $dashboardRules
+          } | ConvertTo-Json -Depth 20 | Set-Content (Join-Path $temporaryExport 'dashboard.json') -Encoding utf8
+          Copy-Item 'dashboard/index.html' (Join-Path $temporaryExport 'index.html')
 
           git fetch origin sentinel-export 2>$null
           if ($LASTEXITCODE -eq 0) {
@@ -89,3 +132,17 @@ jobs:
 
           git commit -m 'Export enabled Sentinel analytics rules'
           git push origin sentinel-export
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload dashboard
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: SentinelExport
+
+      - name: Deploy dashboard
+        id: deployment
+        uses: actions/deploy-pages@v4
