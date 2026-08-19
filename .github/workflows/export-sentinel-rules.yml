@@ -13,9 +13,6 @@ permissions:
 jobs:
   export:
     runs-on: windows-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -143,6 +140,14 @@ jobs:
         with:
           path: SentinelExport
 
+
+  deploy:
+    needs: export
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy dashboard
         id: deployment
         uses: actions/deploy-pages@v4
