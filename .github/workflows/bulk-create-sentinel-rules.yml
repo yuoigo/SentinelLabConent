@@ -254,6 +254,9 @@ jobs:
                   $properties[$propertyName] = $property.Value
                 }
               }
+              if (@($properties['entityMappings']).Count -gt 5) {
+                $properties['entityMappings'] = @($properties['entityMappings'] | Select-Object -First 5)
+              }
               $displayName = [string]$properties['displayName']
               foreach ($requiredProperty in @('displayName', 'query', 'queryFrequency', 'queryPeriod', 'severity', 'triggerOperator', 'triggerThreshold')) {
                 if ($null -eq $properties[$requiredProperty] -or [string]::IsNullOrWhiteSpace([string]$properties[$requiredProperty])) { throw "Required property '$requiredProperty' is missing." }
