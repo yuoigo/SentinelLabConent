@@ -1,0 +1,661 @@
+{
+  "exportedAtUtc": "2026-08-19T02:48:21.4833500Z",
+  "subscriptionId": "9feae9d3-e5be-4b77-b390-18cb15a29c0d",
+  "resourceGroup": "seclabenv",
+  "workspace": "sentinellab2026",
+  "severityCounts": {
+    "High": 25,
+    "Medium": 16,
+    "Low": 0,
+    "Informational": 1,
+    "Unknown": 0
+  },
+  "kindCounts": {
+    "Fusion": 1,
+    "Scheduled": 41
+  },
+  "rules": [
+    {
+      "name": "450f4e56-5bba-4070-b9d9-9204ba9d777d",
+      "displayName": "Account Creation",
+      "kind": "Scheduled",
+      "severity": "Medium",
+      "tactics": [
+        "Persistence"
+      ],
+      "techniques": [
+        "T1136"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:34:20"
+    },
+    {
+      "name": "BuiltInFusion",
+      "displayName": "Advanced Multistage Attack Detection",
+      "kind": "Fusion",
+      "severity": "High",
+      "tactics": [
+        "Collection",
+        "CommandAndControl",
+        "CredentialAccess",
+        "DefenseEvasion",
+        "Discovery",
+        "Execution",
+        "Exfiltration",
+        "Impact",
+        "InitialAccess",
+        "LateralMovement",
+        "Persistence",
+        "PrivilegeEscalation"
+      ],
+      "techniques": [],
+      "queryFrequency": "",
+      "lastModifiedUtc": "08/05/2026 05:20:58"
+    },
+    {
+      "name": "18dbdc22-b69f-4109-9e39-723d9465f45f",
+      "displayName": "Aqua Blizzard AV hits - Feb 2022",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "Persistence"
+      ],
+      "techniques": [
+        "T1137"
+      ],
+      "queryFrequency": "PT6H",
+      "lastModifiedUtc": "08/19/2026 02:03:55"
+    },
+    {
+      "name": "3bd33158-3f0b-47e3-a50f-7c20a1b88038",
+      "displayName": "AV detections related to SpringShell Vulnerability",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "InitialAccess"
+      ],
+      "techniques": [
+        "T1190"
+      ],
+      "queryFrequency": "P1D",
+      "lastModifiedUtc": "08/19/2026 02:03:49"
+    },
+    {
+      "name": "1785d372-b9fe-4283-96a6-3a1d83cabfd1",
+      "displayName": "AV detections related to Tarrask malware",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "Persistence"
+      ],
+      "techniques": [
+        "T1053"
+      ],
+      "queryFrequency": "P1D",
+      "lastModifiedUtc": "08/19/2026 02:04:11"
+    },
+    {
+      "name": "b6685757-3ed1-4b05-a5bd-2cacadc86c2a",
+      "displayName": "AV detections related to Ukraine threats",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "Impact"
+      ],
+      "techniques": [
+        "T1485"
+      ],
+      "queryFrequency": "P1D",
+      "lastModifiedUtc": "08/19/2026 02:04:05"
+    },
+    {
+      "name": "2a1dc4c2-a8d6-4a0e-8539-9b971c851195",
+      "displayName": "Bitsadmin Activity",
+      "kind": "Scheduled",
+      "severity": "Medium",
+      "tactics": [
+        "Persistence",
+        "CommandAndControl",
+        "Exfiltration"
+      ],
+      "techniques": [
+        "T1197",
+        "T1105",
+        "T1048"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:34:05"
+    },
+    {
+      "name": "7ce00cba-f76f-4026-ab7f-7e4f1b67bd18",
+      "displayName": "C2-NamedPipe",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "CommandAndControl"
+      ],
+      "techniques": [
+        "T1105"
+      ],
+      "queryFrequency": "P1D",
+      "lastModifiedUtc": "08/19/2026 02:34:26"
+    },
+    {
+      "name": "515d0bba-b297-4f83-8280-20ff7f27ecb1",
+      "displayName": "Clearing of forensic evidence from event logs using wevtutil",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "DefenseEvasion"
+      ],
+      "techniques": [
+        "T1070"
+      ],
+      "queryFrequency": "P1D",
+      "lastModifiedUtc": "08/19/2026 02:34:11"
+    },
+    {
+      "name": "c25a8cd4-5b4a-45a8-9ba0-3b753a652f6b",
+      "displayName": "Deimos Component Execution",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "Execution",
+        "Collection",
+        "Exfiltration"
+      ],
+      "techniques": [
+        "T1059",
+        "T1005",
+        "T1020"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:36:00"
+    },
+    {
+      "name": "03caa992-477f-4b19-8e2a-8cd58f8f9652",
+      "displayName": "Deletion of data on multiple drives using cipher exe",
+      "kind": "Scheduled",
+      "severity": "Medium",
+      "tactics": [
+        "Impact"
+      ],
+      "techniques": [
+        "T1485"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:34:15"
+    },
+    {
+      "name": "12134de5-361b-427c-a1a0-d43f40a593c4",
+      "displayName": "Detect Potential Kerberoast Activities",
+      "kind": "Scheduled",
+      "severity": "Medium",
+      "tactics": [
+        "CredentialAccess"
+      ],
+      "techniques": [
+        "T1558"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:34:57"
+    },
+    {
+      "name": "fa2f7d8a-6726-465a-aa72-6f6e3d4c99d7",
+      "displayName": "Detect Suspicious Commands Initiated by Webserver Processes",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "Execution",
+        "DefenseEvasion",
+        "Discovery"
+      ],
+      "techniques": [
+        "T1059",
+        "T1574",
+        "T1087",
+        "T1082"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:34:53"
+    },
+    {
+      "name": "32b29155-3fd3-4a9e-a0ca-a67e2593b60b",
+      "displayName": "Disabling Security Services via Registry",
+      "kind": "Scheduled",
+      "severity": "Medium",
+      "tactics": [
+        "DefenseEvasion"
+      ],
+      "techniques": [
+        "T1562"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:35:27"
+    },
+    {
+      "name": "5bdc1504-880c-4b30-a39c-7c746535928d",
+      "displayName": "Doppelpaymer Stop Services",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "Execution",
+        "DefenseEvasion"
+      ],
+      "techniques": [
+        "T1059",
+        "T1562"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:35:55"
+    },
+    {
+      "name": "1be34fb9-f81b-47ae-84fb-465e6686d76c",
+      "displayName": "DopplePaymer Procdump",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "CredentialAccess"
+      ],
+      "techniques": [
+        "T1003"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:35:20"
+    },
+    {
+      "name": "26e81021-2de6-4442-a74a-a77885e96911",
+      "displayName": "Execution of software vulnerable to webp buffer overflow of CVE-2023-4863",
+      "kind": "Scheduled",
+      "severity": "Informational",
+      "tactics": [
+        "Execution"
+      ],
+      "techniques": [
+        "T1203"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:39:00"
+    },
+    {
+      "name": "3ab04acf-e0e7-4f7c-8995-748ab4c848c2",
+      "displayName": "Files Copied to USB Drives",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "Exfiltration"
+      ],
+      "techniques": [
+        "T1041"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:35:05"
+    },
+    {
+      "name": "bb46dd86-e642-48a4-975c-44f5ac2b5033",
+      "displayName": "Imminent Ransomware",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "DefenseEvasion",
+        "Persistence"
+      ],
+      "techniques": [
+        "T1562",
+        "T1547"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:35:22"
+    },
+    {
+      "name": "2c81c0a0-9823-4a14-b21a-2b4acd3335d2",
+      "displayName": "Java Executing cmd to run Powershell",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "Execution"
+      ],
+      "techniques": [
+        "T1059"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:34:48"
+    },
+    {
+      "name": "7d0d3050-8dac-4b83-bfae-902f7dc0c21c",
+      "displayName": "LaZagne Credential Theft",
+      "kind": "Scheduled",
+      "severity": "Medium",
+      "tactics": [
+        "CredentialAccess"
+      ],
+      "techniques": [
+        "T1003"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:36:08"
+    },
+    {
+      "name": "63aa43c2-e88e-4102-aea5-0432851c541a",
+      "displayName": "Local Admin Group Changes",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "Persistence"
+      ],
+      "techniques": [
+        "T1098"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:36:13"
+    },
+    {
+      "name": "c332b840-61e4-462e-a201-0e2d69bad45d",
+      "displayName": "LSASS Credential Dumping with Procdump",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "CredentialAccess"
+      ],
+      "techniques": [
+        "T1003"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:35:48"
+    },
+    {
+      "name": "506f4d6b-3864-4bb1-8f75-a13fb066f97a",
+      "displayName": "MosaicLoader",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "DefenseEvasion"
+      ],
+      "techniques": [
+        "T1562"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:35:42"
+    },
+    {
+      "name": "174de33b-107b-4cd8-a85d-b4025a35453f",
+      "displayName": "Office Apps Launching Wscipt",
+      "kind": "Scheduled",
+      "severity": "Medium",
+      "tactics": [
+        "Execution",
+        "Collection",
+        "CommandAndControl"
+      ],
+      "techniques": [
+        "T1059",
+        "T1105",
+        "T1203"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:36:05"
+    },
+    {
+      "name": "6c3a1258-bcdd-4fcd-b753-1a9bc826ce12",
+      "displayName": "Possible Phishing with CSL and Network Sessions",
+      "kind": "Scheduled",
+      "severity": "Medium",
+      "tactics": [
+        "InitialAccess",
+        "CommandAndControl"
+      ],
+      "techniques": [
+        "T1566",
+        "T1102"
+      ],
+      "queryFrequency": "P1D",
+      "lastModifiedUtc": "08/19/2026 02:35:35"
+    },
+    {
+      "name": "1bf6e165-5e32-420e-ab4f-0da8558a8be2",
+      "displayName": "Potential Build Process Compromise - MDE",
+      "kind": "Scheduled",
+      "severity": "Medium",
+      "tactics": [
+        "Persistence"
+      ],
+      "techniques": [
+        "T1554"
+      ],
+      "queryFrequency": "P1D",
+      "lastModifiedUtc": "08/19/2026 02:04:02"
+    },
+    {
+      "name": "4bd9ce9d-8586-4beb-8fdb-bd018cacbe7d",
+      "displayName": "Potential Ransomware activity related to Cobalt Strike",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "Execution",
+        "Persistence",
+        "DefenseEvasion",
+        "Impact"
+      ],
+      "techniques": [
+        "T1059",
+        "T1078",
+        "T1070",
+        "T1490"
+      ],
+      "queryFrequency": "P1D",
+      "lastModifiedUtc": "08/19/2026 02:35:10"
+    },
+    {
+      "name": "47c02e21-3949-4e05-a28e-576cd75ff6f6",
+      "displayName": "Qakbot Campaign Self Deletion",
+      "kind": "Scheduled",
+      "severity": "Medium",
+      "tactics": [
+        "DefenseEvasion"
+      ],
+      "techniques": [
+        "T1070"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:34:44"
+    },
+    {
+      "name": "ba9db6b2-3d05-42ae-8aee-3a15bbe29f27",
+      "displayName": "Qakbot Discovery Activies",
+      "kind": "Scheduled",
+      "severity": "Medium",
+      "tactics": [
+        "DefenseEvasion",
+        "Discovery",
+        "Execution"
+      ],
+      "techniques": [
+        "T1140",
+        "T1010",
+        "T1059"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:35:13"
+    },
+    {
+      "name": "91a451e3-178f-41b2-9e5d-da97d75b9971",
+      "displayName": "Rare Process as a Service",
+      "kind": "Scheduled",
+      "severity": "Medium",
+      "tactics": [
+        "Persistence"
+      ],
+      "techniques": [
+        "T1543"
+      ],
+      "queryFrequency": "P1D",
+      "lastModifiedUtc": "08/19/2026 02:34:36"
+    },
+    {
+      "name": "36fbd4e7-5630-4414-aa42-702a7fdded21",
+      "displayName": "Regsvr32 Rundll32 Image Loads Abnormal Extension",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "DefenseEvasion"
+      ],
+      "techniques": [
+        "T1218"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:35:31"
+    },
+    {
+      "name": "2624fc55-0998-4897-bb48-1c6422befce4",
+      "displayName": "Regsvr32 Rundll32 with Anomalous Parent Process",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "DefenseEvasion"
+      ],
+      "techniques": [
+        "T1218"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:35:45"
+    },
+    {
+      "name": "35ab0d58-baab-4154-87ed-fa2f69797e9e",
+      "displayName": "Remote File Creation with PsExec",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "LateralMovement"
+      ],
+      "techniques": [
+        "T1570"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:34:32"
+    },
+    {
+      "name": "d29cc957-0ddb-4d00-8d6f-ad1bb345ff9a",
+      "displayName": "Service Accounts Performing Remote PS",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "LateralMovement"
+      ],
+      "techniques": [
+        "T1210"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:35:16"
+    },
+    {
+      "name": "28c63a44-2d35-48b7-831b-3ed24af17c7e",
+      "displayName": "Shadow Copy Deletions",
+      "kind": "Scheduled",
+      "severity": "Medium",
+      "tactics": [
+        "Impact"
+      ],
+      "techniques": [
+        "T1490"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:34:23"
+    },
+    {
+      "name": "4dd31bd5-11a3-4b9c-a7c5-4927ab4f2a77",
+      "displayName": "Stopping multiple processes using taskkill",
+      "kind": "Scheduled",
+      "severity": "Medium",
+      "tactics": [
+        "DefenseEvasion"
+      ],
+      "techniques": [
+        "T1562"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:35:00"
+    },
+    {
+      "name": "a3c144f9-8051-47d4-ac29-ffb0c312c910",
+      "displayName": "SUNBURST and SUPERNOVA backdoor hashes",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "Execution",
+        "Persistence",
+        "InitialAccess"
+      ],
+      "techniques": [
+        "T1195",
+        "T1059",
+        "T1546"
+      ],
+      "queryFrequency": "P1D",
+      "lastModifiedUtc": "08/19/2026 02:04:08"
+    },
+    {
+      "name": "ce1e7025-866c-41f3-9b08-ec170e05e73e",
+      "displayName": "SUNBURST network beacons",
+      "kind": "Scheduled",
+      "severity": "Medium",
+      "tactics": [
+        "Execution",
+        "Persistence",
+        "InitialAccess"
+      ],
+      "techniques": [
+        "T1195",
+        "T1059",
+        "T1546"
+      ],
+      "queryFrequency": "P1D",
+      "lastModifiedUtc": "08/19/2026 02:03:52"
+    },
+    {
+      "name": "53e936c6-6c30-4d12-8343-b8a0456e8429",
+      "displayName": "SUNSPOT malware hashes",
+      "kind": "Scheduled",
+      "severity": "Medium",
+      "tactics": [
+        "Persistence"
+      ],
+      "techniques": [
+        "T1554"
+      ],
+      "queryFrequency": "P1D",
+      "lastModifiedUtc": "08/19/2026 02:04:00"
+    },
+    {
+      "name": "738702fd-0a66-42c7-8586-e30f0583f8fe",
+      "displayName": "TEARDROP memory-only dropper",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "Execution",
+        "Persistence",
+        "DefenseEvasion"
+      ],
+      "techniques": [
+        "T1543",
+        "T1059",
+        "T1027"
+      ],
+      "queryFrequency": "P1D",
+      "lastModifiedUtc": "08/19/2026 02:03:45"
+    },
+    {
+      "name": "e5f8e196-3544-4a8b-96a9-17c1b6a49710",
+      "displayName": "Unusual Volume of file deletion by users",
+      "kind": "Scheduled",
+      "severity": "High",
+      "tactics": [
+        "Impact"
+      ],
+      "techniques": [
+        "T1485"
+      ],
+      "queryFrequency": "PT1H",
+      "lastModifiedUtc": "08/19/2026 02:36:19"
+    }
+  ]
+}
