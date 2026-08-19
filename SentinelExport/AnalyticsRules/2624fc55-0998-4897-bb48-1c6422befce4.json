@@ -1,0 +1,86 @@
+{
+  "id": "/subscriptions/9feae9d3-e5be-4b77-b390-18cb15a29c0d/resourceGroups/seclabenv/providers/Microsoft.OperationalInsights/workspaces/sentinellab2026/providers/Microsoft.SecurityInsights/alertRules/2624fc55-0998-4897-bb48-1c6422befce4",
+  "name": "2624fc55-0998-4897-bb48-1c6422befce4",
+  "type": "Microsoft.SecurityInsights/alertRules",
+  "kind": "Scheduled",
+  "properties": {
+    "alertRuleTemplateName": "2624fc55-0998-4897-bb48-1c6422befce4",
+    "description": "This analytical rule looks for rundll32.exe or regsvr32.exe being spawned by abnormal processes: wscript.exe, powershell.exe, cmd.exe, pwsh.exe, cscript.exe.\nBlog: https://threathunt.blog/running-live-malware-for-threat-hunting-purposes/",
+    "displayName": "Regsvr32 Rundll32 with Anomalous Parent Process",
+    "enabled": true,
+    "entityMappings": [
+      {
+        "entityType": "Host",
+        "fieldMappings": [
+          {
+            "columnName": "DeviceName",
+            "identifier": "FullName"
+          },
+          {
+            "columnName": "HostName",
+            "identifier": "HostName"
+          },
+          {
+            "columnName": "DnsDomain",
+            "identifier": "DnsDomain"
+          }
+        ]
+      },
+      {
+        "entityType": "IP",
+        "fieldMappings": [
+          {
+            "columnName": "LocalIP",
+            "identifier": "Address"
+          }
+        ]
+      },
+      {
+        "entityType": "IP",
+        "fieldMappings": [
+          {
+            "columnName": "RemoteIP",
+            "identifier": "Address"
+          }
+        ]
+      },
+      {
+        "entityType": "URL",
+        "fieldMappings": [
+          {
+            "columnName": "RemoteUrl",
+            "identifier": "Url"
+          }
+        ]
+      }
+    ],
+    "incidentConfiguration": {
+      "createIncident": true,
+      "groupingConfiguration": {
+        "enabled": false,
+        "groupByAlertDetails": null,
+        "groupByCustomDetails": null,
+        "groupByEntities": [],
+        "lookbackDuration": "PT5M",
+        "matchingMethod": "AllEntities",
+        "reopenClosedIncident": false
+      }
+    },
+    "lastModifiedUtc": "2026-08-19T02:35:45.1180656Z",
+    "query": "DeviceProcessEvents\n| where FileName has_any (\"rundll32.exe\",\"regsvr32.exe\")\n| where InitiatingProcessFileName has_any (\"wscript.exe\",\"powershell.exe\",\"cmd.exe\",\"pwsh.exe\",\"cscript.exe\")\n| project TimeGenerated, DeviceName, InvestigatedProcessName=FileName, InvestigatedProcessCommandLine = ProcessCommandLine,InvestigatedProcessStartTime = ProcessCreationTime, InvestigatedProcessId = ProcessId, InitiatingProcessFileName, InitiatingProcessCommandLine, InitiatingProcessParentFileName\n| join (\nDeviceNetworkEvents\n| where InitiatingProcessFileName has_any (\"rundll32.exe\",\"regsvr32.exe\")\n| where RemoteIPType == \"Public\"\n| project DeviceName, InvestigatedProcessName=InitiatingProcessFileName, InvestigatedProcessCommandLine = InitiatingProcessCommandLine,InvestigatedProcessStartTime = InitiatingProcessCreationTime, InvestigatedProcessId = InitiatingProcessId, LocalIP, RemoteIP, RemoteUrl\n) on DeviceName, InvestigatedProcessCommandLine, InvestigatedProcessId, InvestigatedProcessName, InvestigatedProcessStartTime\n| project-away DeviceName1, InvestigatedProcessCommandLine1, InvestigatedProcessId1, InvestigatedProcessName1, InvestigatedProcessStartTime1\n| extend HostName = iff(DeviceName has '.', substring(DeviceName, 0, indexof(DeviceName, '.')), DeviceName)\n| extend DnsDomain = iff(DeviceName has '.', substring(DeviceName, indexof(DeviceName, '.') + 1), \"\")\n",
+    "queryFrequency": "PT1H",
+    "queryPeriod": "PT1H",
+    "severity": "High",
+    "suppressionDuration": "PT1H",
+    "suppressionEnabled": false,
+    "tactics": [
+      "DefenseEvasion"
+    ],
+    "techniques": [
+      "T1218"
+    ],
+    "templateVersion": "1.0.0",
+    "triggerOperator": "GreaterThan",
+    "triggerThreshold": 0
+  }
+}

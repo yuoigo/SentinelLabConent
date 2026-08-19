@@ -1,0 +1,64 @@
+{
+  "id": "/subscriptions/9feae9d3-e5be-4b77-b390-18cb15a29c0d/resourceGroups/seclabenv/providers/Microsoft.OperationalInsights/workspaces/sentinellab2026/providers/Microsoft.SecurityInsights/alertRules/fa2f7d8a-6726-465a-aa72-6f6e3d4c99d7",
+  "name": "fa2f7d8a-6726-465a-aa72-6f6e3d4c99d7",
+  "type": "Microsoft.SecurityInsights/alertRules",
+  "kind": "Scheduled",
+  "properties": {
+    "alertRuleTemplateName": "fa2f7d8a-6726-465a-aa72-6f6e3d4c99d7",
+    "description": "This query was originally published in the threat analytics report, Operation Soft Cell.\nOperation Soft Cell is a series of campaigns targeting users' call logs at telecommunications providers throughout the world. These attacks date from as early as 2012.\nOperation Soft Cell operators sometimes use legitimate web server processes to launch commands, especially for network discovery and user/owner discovery. The following query detects activity of this kind.\nReference - https://www.cybereason.com/blog/operation-soft-cell-a-worldwide-campaign-against-telecommunications-providers",
+    "displayName": "Detect Suspicious Commands Initiated by Webserver Processes",
+    "enabled": true,
+    "entityMappings": [
+      {
+        "entityType": "Host",
+        "fieldMappings": [
+          {
+            "columnName": "DeviceName",
+            "identifier": "FullName"
+          },
+          {
+            "columnName": "HostName",
+            "identifier": "HostName"
+          },
+          {
+            "columnName": "DnsDomain",
+            "identifier": "DnsDomain"
+          }
+        ]
+      }
+    ],
+    "incidentConfiguration": {
+      "createIncident": true,
+      "groupingConfiguration": {
+        "enabled": false,
+        "groupByAlertDetails": null,
+        "groupByCustomDetails": null,
+        "groupByEntities": [],
+        "lookbackDuration": "PT5M",
+        "matchingMethod": "AllEntities",
+        "reopenClosedIncident": false
+      }
+    },
+    "lastModifiedUtc": "2026-08-19T02:34:53.1265126Z",
+    "query": "// Suspicious commands launched by web server processes\nDeviceProcessEvents \n| where (((InitiatingProcessParentFileName in(\"w3wp.exe\", \"beasvc.exe\",\n    \"httpd.exe\") or InitiatingProcessParentFileName startswith \"tomcat\")\n    or InitiatingProcessFileName in(\"w3wp.exe\", \"beasvc.exe\", \"httpd.exe\") or\n    InitiatingProcessFileName startswith \"tomcat\"))\n    and FileName in~('cmd.exe', 'powershell.exe')\n| where ProcessCommandLine contains '%temp%'\n    or ProcessCommandLine has 'wget'\n    or ProcessCommandLine has 'whoami'\n    or ProcessCommandLine has 'certutil'\n    or ProcessCommandLine has 'systeminfo'\n    or ProcessCommandLine has 'ping'\n    or ProcessCommandLine has 'ipconfig'\n    or ProcessCommandLine has 'timeout'\n| summarize\n    take_any(FileName),\n    make_set(ProcessCommandLine, 100000),\n    take_any(InitiatingProcessFileName),\n    take_any(InitiatingProcessParentFileName)\n    by DeviceId, DeviceName\n| extend HostName = iff(DeviceName has '.', substring(DeviceName, 0, indexof(DeviceName, '.')), DeviceName)\n| extend DnsDomain = iff(DeviceName has '.', substring(DeviceName, indexof(DeviceName, '.') + 1), \"\")\n",
+    "queryFrequency": "PT1H",
+    "queryPeriod": "PT1H",
+    "severity": "High",
+    "suppressionDuration": "PT1H",
+    "suppressionEnabled": false,
+    "tactics": [
+      "Execution",
+      "DefenseEvasion",
+      "Discovery"
+    ],
+    "techniques": [
+      "T1059",
+      "T1574",
+      "T1087",
+      "T1082"
+    ],
+    "templateVersion": "1.0.0",
+    "triggerOperator": "GreaterThan",
+    "triggerThreshold": 0
+  }
+}

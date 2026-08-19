@@ -1,0 +1,72 @@
+{
+  "id": "/subscriptions/9feae9d3-e5be-4b77-b390-18cb15a29c0d/resourceGroups/seclabenv/providers/Microsoft.OperationalInsights/workspaces/sentinellab2026/providers/Microsoft.SecurityInsights/alertRules/7d0d3050-8dac-4b83-bfae-902f7dc0c21c",
+  "name": "7d0d3050-8dac-4b83-bfae-902f7dc0c21c",
+  "type": "Microsoft.SecurityInsights/alertRules",
+  "kind": "Scheduled",
+  "properties": {
+    "alertRuleTemplateName": "7d0d3050-8dac-4b83-bfae-902f7dc0c21c",
+    "description": "LaZagne is a popular open-source tool used to recover passwords stored on a local computer. It has been used in ransomware attacks to steal credentials and escalate privileges. This query looks for the execution of LaZagne.",
+    "displayName": "LaZagne Credential Theft",
+    "enabled": true,
+    "entityMappings": [
+      {
+        "entityType": "Host",
+        "fieldMappings": [
+          {
+            "columnName": "DeviceName",
+            "identifier": "FullName"
+          },
+          {
+            "columnName": "HostName",
+            "identifier": "HostName"
+          },
+          {
+            "columnName": "DnsDomain",
+            "identifier": "DnsDomain"
+          }
+        ]
+      },
+      {
+        "entityType": "Process",
+        "fieldMappings": [
+          {
+            "columnName": "ProcessId",
+            "identifier": "ProcessId"
+          },
+          {
+            "columnName": "ProcessCommandLine",
+            "identifier": "CommandLine"
+          }
+        ]
+      }
+    ],
+    "incidentConfiguration": {
+      "createIncident": true,
+      "groupingConfiguration": {
+        "enabled": false,
+        "groupByAlertDetails": null,
+        "groupByCustomDetails": null,
+        "groupByEntities": [],
+        "lookbackDuration": "PT5M",
+        "matchingMethod": "AllEntities",
+        "reopenClosedIncident": false
+      }
+    },
+    "lastModifiedUtc": "2026-08-19T02:36:08.4962918Z",
+    "query": "DeviceProcessEvents \n| where FileName =~ 'reg.exe'\n| where ProcessCommandLine has_all('save','hklm','sam')\n| project DeviceId, DeviceName, TimeGenerated, InitiatingProcessId, InitiatingProcessFileName, ProcessId, FileName, ProcessCommandLine\n| extend HostName = iff(DeviceName has '.', substring(DeviceName, 0, indexof(DeviceName, '.')), DeviceName)\n| extend DnsDomain = iff(DeviceName has '.', substring(DeviceName, indexof(DeviceName, '.') + 1), \"\")\n",
+    "queryFrequency": "PT1H",
+    "queryPeriod": "PT1H",
+    "severity": "Medium",
+    "suppressionDuration": "PT1H",
+    "suppressionEnabled": false,
+    "tactics": [
+      "CredentialAccess"
+    ],
+    "techniques": [
+      "T1003"
+    ],
+    "templateVersion": "1.0.0",
+    "triggerOperator": "GreaterThan",
+    "triggerThreshold": 0
+  }
+}
