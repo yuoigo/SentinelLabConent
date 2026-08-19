@@ -1,0 +1,91 @@
+name: Export enabled Sentinel analytics rules
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 18 * * *'
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  export:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Login to Azure
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_SENTINEL_CLIENTID_62931b70807347c0b1bb1fd4c064975d }}
+          tenant-id: ${{ secrets.AZURE_SENTINEL_TENANTID_62931b70807347c0b1bb1fd4c064975d }}
+          subscription-id: ${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_62931b70807347c0b1bb1fd4c064975d }}
+          environment: AzureCloud
+          audience: api://AzureADTokenExchange
+
+      - name: Export enabled analytics rules
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $subscriptionId = '${{ secrets.AZURE_SENTINEL_SUBSCRIPTIONID_62931b70807347c0b1bb1fd4c064975d }}'
+          $resourceGroup = 'seclabenv'
+          $workspace = 'sentinellab2026'
+          $apiVersion = '2025-09-01'
+          $uri = "https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$resourceGroup/providers/Microsoft.OperationalInsights/workspaces/$workspace/providers/Microsoft.SecurityInsights/alertRules?api-version=$apiVersion"
+
+          $rules = @()
+          do {
+            $response = az rest --method get --url $uri --output json | ConvertFrom-Json
+            $rules += @($response.value)
+            $uri = $response.nextLink
+          } while ($uri)
+
+          $enabledRules = @($rules | Where-Object { $_.properties.enabled -eq $true })
+          $temporaryExport = Join-Path $env:RUNNER_TEMP 'SentinelExport'
+          $rulesDirectory = Join-Path $temporaryExport 'AnalyticsRules'
+          Remove-Item $temporaryExport -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item $rulesDirectory -ItemType Directory -Force | Out-Null
+
+          foreach ($rule in $enabledRules) {
+            $snapshot = [ordered]@{
+              id = $rule.id
+              name = $rule.name
+              type = $rule.type
+              kind = $rule.kind
+              properties = $rule.properties
+            }
+            $snapshot | ConvertTo-Json -Depth 100 | Set-Content (Join-Path $rulesDirectory "$($rule.name).json") -Encoding utf8
+          }
+
+          [ordered]@{
+            exportedAtUtc = (Get-Date).ToUniversalTime().ToString('o')
+            subscriptionId = $subscriptionId
+            resourceGroup = $resourceGroup
+            workspace = $workspace
+            enabledAnalyticsRuleCount = $enabledRules.Count
+          } | ConvertTo-Json | Set-Content (Join-Path $temporaryExport 'manifest.json') -Encoding utf8
+
+          git fetch origin sentinel-export 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            git switch -C sentinel-export origin/sentinel-export
+          } else {
+            git switch -c sentinel-export
+          }
+
+          Remove-Item SentinelExport -Recurse -Force -ErrorAction SilentlyContinue
+          Copy-Item $temporaryExport SentinelExport -Recurse
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add SentinelExport
+
+          if (git diff --cached --quiet) {
+            Write-Host 'No Sentinel analytics rule changes detected.'
+            exit 0
+          }
+
+          git commit -m 'Export enabled Sentinel analytics rules'
+          git push origin sentinel-export
