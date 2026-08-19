@@ -67,7 +67,15 @@ jobs:
 
           $baseUri = "https://management.azure.com/subscriptions/$env:AZURE_SUBSCRIPTION_ID/resourceGroups/$env:RESOURCE_GROUP/providers/Microsoft.OperationalInsights/workspaces/$env:WORKSPACE/providers/Microsoft.SecurityInsights"
           $templates = @(Get-PagedItems "$baseUri/alertRuleTemplates?api-version=$env:API_VERSION")
+          $contentTemplates = @(Get-PagedItems "$baseUri/contentTemplates?api-version=$env:API_VERSION")
           $rules = @(Get-PagedItems "$baseUri/alertRules?api-version=$env:API_VERSION")
+
+          $installedTemplateIds = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+          foreach ($contentTemplate in $contentTemplates) {
+            if ([string]$contentTemplate.properties.contentKind -in @('AnalyticsRule', 'AnalyticsRuleTemplate')) {
+              [void]$installedTemplateIds.Add([string]$contentTemplate.properties.contentId)
+            }
+          }
 
           $representedTemplates = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
           $existingRuleNames = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
@@ -89,6 +97,7 @@ jobs:
             'triggerOperator', 'triggerThreshold'
           )
           $results = [Collections.Generic.List[object]]::new()
+          $notInstalled = 0
           $unsupported = 0
           $alreadyExists = 0
           $planned = 0
@@ -96,6 +105,10 @@ jobs:
           $failed = 0
 
           foreach ($template in $templates) {
+            if (-not $installedTemplateIds.Contains([string]$template.name)) {
+              $notInstalled++
+              continue
+            }
             if ([string]$template.kind -ne 'Scheduled') {
               $unsupported++
               continue
@@ -179,8 +192,10 @@ jobs:
             '## Microsoft Sentinel template rule creation', '',
             "Mode: **$env:MODE**", '',
             '| Item | Count |', '| --- | ---: |',
-            "| Templates returned | $($templates.Count) |",
+            "| Gallery templates returned | $($templates.Count) |",
+            "| Installed Content Hub analytics templates | $($installedTemplateIds.Count) |",
             "| Existing rules returned | $($rules.Count) |",
+            "| Not installed skipped | $notInstalled |",
             "| Unsupported kinds skipped | $unsupported |",
             "| Already represented skipped | $alreadyExists |",
             "| Previewed | $planned |",
