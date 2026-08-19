@@ -69,7 +69,7 @@ jobs:
             $found = [Collections.Generic.List[object]]::new()
             foreach ($resource in @($Resources)) {
               if ($null -eq $resource) { continue }
-              if ([string]$resource.type -match '(?i)(^|/)alertRules$') { $found.Add($resource) }
+              if ([string]$resource.type -match '(?i)(^|/)(alertRules|AlertRuleTemplates)$') { $found.Add($resource) }
               $nestedResources = @($resource.resources | Where-Object { $null -ne $_ })
               if ($nestedResources.Count -gt 0) {
                 foreach ($nested in @(Get-AlertRuleResources $nestedResources)) { $found.Add($nested) }
@@ -247,7 +247,13 @@ jobs:
                 continue
               }
 
-              $properties = $resource.properties | ConvertTo-Json -Depth 100 | ConvertFrom-Json -Depth 100 -AsHashtable
+              $properties = [ordered]@{}
+              foreach ($propertyName in $copyProperties) {
+                $property = $resource.properties.PSObject.Properties[$propertyName]
+                if ($null -ne $property -and $null -ne $property.Value) {
+                  $properties[$propertyName] = $property.Value
+                }
+              }
               $displayName = [string]$properties['displayName']
               foreach ($requiredProperty in @('displayName', 'query', 'queryFrequency', 'queryPeriod', 'severity', 'triggerOperator', 'triggerThreshold')) {
                 if ($null -eq $properties[$requiredProperty] -or [string]::IsNullOrWhiteSpace([string]$properties[$requiredProperty])) { throw "Required property '$requiredProperty' is missing." }
@@ -255,8 +261,11 @@ jobs:
               $propertiesJson = $properties | ConvertTo-Json -Depth 100
               if ($propertiesJson -match '(?i)\[(parameters|variables|reference|resourceId|subscriptionResourceId)\(') { throw 'The rule contains unresolved ARM template expressions.' }
               $properties['enabled'] = $true
-              if (-not $properties.ContainsKey('suppressionDuration')) { $properties['suppressionDuration'] = 'PT5H' }
-              if (-not $properties.ContainsKey('suppressionEnabled')) { $properties['suppressionEnabled'] = $false }
+              $properties['alertRuleTemplateName'] = $contentId
+              $contentVersion = [string]$contentTemplateDetail.properties.version
+              if ($contentVersion) { $properties['templateVersion'] = $contentVersion }
+              if (-not $properties.Contains('suppressionDuration')) { $properties['suppressionDuration'] = 'PT5H' }
+              if (-not $properties.Contains('suppressionEnabled')) { $properties['suppressionEnabled'] = $false }
               $payload = [ordered]@{ kind = 'Scheduled'; properties = $properties }
 
               if ($env:MODE -eq 'preview') {
