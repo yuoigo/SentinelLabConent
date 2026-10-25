@@ -1,10 +1,10 @@
 {
-  "exportedAtUtc": "2026-10-24T20:23:44.0603749Z",
+  "exportedAtUtc": "2026-10-25T20:30:36.9194073Z",
   "subscriptionId": "9feae9d3-e5be-4b77-b390-18cb15a29c0d",
   "resourceGroup": "seclabenv",
   "workspace": "sentinellab2026",
   "severityCounts": {
-    "High": 25,
+    "High": 24,
     "Medium": 16,
     "Low": 0,
     "Informational": 1,
@@ -12,7 +12,7 @@
   },
   "kindCounts": {
     "Fusion": 1,
-    "Scheduled": 41
+    "Scheduled": 40
   },
   "rules": [
     {
@@ -334,20 +334,6 @@
       ],
       "queryFrequency": "PT1H",
       "lastModifiedUtc": "08/19/2026 02:36:08"
-    },
-    {
-      "name": "63aa43c2-e88e-4102-aea5-0432851c541a",
-      "displayName": "Local Admin Group Changes",
-      "kind": "Scheduled",
-      "severity": "High",
-      "tactics": [
-        "Persistence"
-      ],
-      "techniques": [
-        "T1098"
-      ],
-      "queryFrequency": "PT1H",
-      "lastModifiedUtc": "08/19/2026 02:36:13"
     },
     {
       "name": "c332b840-61e4-462e-a201-0e2d69bad45d",
