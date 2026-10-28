@@ -1,18 +1,18 @@
 {
-  "exportedAtUtc": "2026-10-27T21:54:54.3834256Z",
+  "exportedAtUtc": "2026-10-28T22:18:31.5589748Z",
   "subscriptionId": "9feae9d3-e5be-4b77-b390-18cb15a29c0d",
   "resourceGroup": "seclabenv",
   "workspace": "sentinellab2026",
   "severityCounts": {
     "High": 24,
-    "Medium": 16,
+    "Medium": 15,
     "Low": 0,
     "Informational": 1,
     "Unknown": 0
   },
   "kindCounts": {
     "Fusion": 1,
-    "Scheduled": 40
+    "Scheduled": 39
   },
   "rules": [
     {
@@ -462,20 +462,6 @@
       ],
       "queryFrequency": "PT1H",
       "lastModifiedUtc": "08/19/2026 02:35:13"
-    },
-    {
-      "name": "91a451e3-178f-41b2-9e5d-da97d75b9971",
-      "displayName": "Rare Process as a Service",
-      "kind": "Scheduled",
-      "severity": "Medium",
-      "tactics": [
-        "Persistence"
-      ],
-      "techniques": [
-        "T1543"
-      ],
-      "queryFrequency": "P1D",
-      "lastModifiedUtc": "08/19/2026 02:34:36"
     },
     {
       "name": "36fbd4e7-5630-4414-aa42-702a7fdded21",
