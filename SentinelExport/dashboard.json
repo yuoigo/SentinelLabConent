@@ -1,18 +1,18 @@
 {
-  "exportedAtUtc": "2026-11-03T22:59:05.2161716Z",
+  "exportedAtUtc": "2026-11-04T23:19:23.8789789Z",
   "subscriptionId": "9feae9d3-e5be-4b77-b390-18cb15a29c0d",
   "resourceGroup": "seclabenv",
   "workspace": "sentinellab2026",
   "severityCounts": {
     "High": 24,
-    "Medium": 15,
+    "Medium": 14,
     "Low": 0,
     "Informational": 1,
     "Unknown": 0
   },
   "kindCounts": {
     "Fusion": 1,
-    "Scheduled": 39
+    "Scheduled": 38
   },
   "rules": [
     {
@@ -380,22 +380,6 @@
       ],
       "queryFrequency": "PT1H",
       "lastModifiedUtc": "08/19/2026 02:36:05"
-    },
-    {
-      "name": "6c3a1258-bcdd-4fcd-b753-1a9bc826ce12",
-      "displayName": "Possible Phishing with CSL and Network Sessions",
-      "kind": "Scheduled",
-      "severity": "Medium",
-      "tactics": [
-        "InitialAccess",
-        "CommandAndControl"
-      ],
-      "techniques": [
-        "T1566",
-        "T1102"
-      ],
-      "queryFrequency": "P1D",
-      "lastModifiedUtc": "08/19/2026 02:35:35"
     },
     {
       "name": "1bf6e165-5e32-420e-ab4f-0da8558a8be2",
